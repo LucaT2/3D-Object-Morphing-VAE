@@ -10,7 +10,7 @@ def scaled_sigmoid_activation(x):
 def weighted_bce_loss(y_true, y_pred, gamma):
     """
     Implements the specialized BCE loss function.
-    L = -γ * t * log(o) - (1-γ) * (1-t) * log(1-o)
+    L = -gamma * t * log(o) - (1-gamma) * (1-t) * log(1-o)
     """
     # Making sure all are of type float32
     y_pred = tf.cast(y_pred, tf.float32)
