@@ -41,17 +41,3 @@ def plot_voxels(voxel_grid, title=""):
     ax.set_title(title)
     plt.show()
 
-# def reconstruct_one_object():
-#     random_number = np.rand() %100
-#     random_model = np.expand_dims(np.load(val_full_paths[random_number]), axis=0) 
-#     random_model = np.expand_dims(random_model, axis=-1)
-#     plot_voxels(np.squeeze(random_model), title="Original Random Model")
-
-#     #z_random_mean = recreated_vae.encoder.predict(random_model)[0]
-#     z_random = recreated_vae.encoder.predict(random_model)[2]
-
-#     #plot_voxels(np.squeeze(z_random_mean), title="Mean of random object")
-#     #plot_voxels(np.squeeze(z_random), title = "Sample of random object")
-
-#     reconstructed_voxel_grid = recreated_vae.decoder.predict(z_random)
-#     plot_voxels(np.squeeze(reconstructed_voxel_grid), title="Reconstruction from random latent sample")
