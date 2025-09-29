@@ -66,8 +66,11 @@ class VAE(Model):
         return encoder
     def build_decoder(self):
         latent_inputs = tf.keras.Input(shape=(self.latent_dim,))
+        x = layers.Dense(256, activation='elu')(latent_inputs)
+
         #Upsample from the latent vector to the small grid necessary for the decoder
-        x = layers.Dense(self.reshape_dim[0] * self.reshape_dim[1] * self.reshape_dim[2] * 128, activation="relu")(latent_inputs)
+        x = layers.Dense(self.reshape_dim[0] * self.reshape_dim[1] * self.reshape_dim[2] * 128,\
+                          activation="elu")(x)
         x = layers.Reshape(self.reshape_dim)(x)
 
         

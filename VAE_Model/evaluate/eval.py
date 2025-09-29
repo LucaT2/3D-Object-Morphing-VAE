@@ -22,6 +22,7 @@ class Eval_VAE():
     def initialize_model(self):
         self.vae_test_model = VAE(hp.INPUT_DIM, hp.LATENT_DIM, hp.RESHAPE_DIM, hp.BETA, hp.L2_WEIGTH)
         self.vae_test_model.build(input_shape = hp.BUILD_INPUT_SHAPE)
+        #self.vae_test_model.summary()
         self.vae_test_model.load_weights(self.weights_file)
         self.vae_test_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate = 1e-3))
 
