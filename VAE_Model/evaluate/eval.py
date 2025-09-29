@@ -1,25 +1,29 @@
 # Libraries imports
 import tensorflow as tf
 import numpy as np
+import os
 
 # This project's file imports
-from VAE_Model.build_model.build_model import VAE
+from VAE_Model.build_vae.build_model import VAE
 from VAE_Model.Preprocess.VoxelizedDataset import VoxelizedDataset
-from eval_utils import calculate_reconstruction_similarity, plot_voxels
-import Hyperparameters as hp
+from VAE_Model.evaluate.eval_utils import calculate_reconstruction_similarity, plot_voxels
+import VAE_Model.Hyperparameters as hp
 
 class Eval_VAE():
     def __init__(self, test_dir, weights_file):
         self.test_dir = test_dir
         self.weights_file = weights_file
         self.vae_test_model = None
-        self.test_generator = VoxelizedDataset(test_dir, hp.BATCH_SIZE, augment = False)
+
+        all_test_files = os.listdir(test_dir)
+        self.full_file_paths = [os.path.join(test_dir, f) for f in all_test_files]
+        self.test_generator = VoxelizedDataset(self.full_file_paths, hp.BATCH_SIZE, augment = False)
 
     def initialize_model(self):
         self.vae_test_model = VAE(hp.INPUT_DIM, hp.LATENT_DIM, hp.RESHAPE_DIM, hp.BETA, hp.L2_WEIGTH)
         self.vae_test_model.build(input_shape = hp.BUILD_INPUT_SHAPE)
         self.vae_test_model.load_weights(self.weights_file)
-
+        self.vae_test_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate = 1e-3))
 
     def evaluate_model(self):
         print("Evaluating model on the test dataset \n")
@@ -34,8 +38,10 @@ class Eval_VAE():
         print(f"Average IOU is: {avg_iou}%")
     
     def reconstruct_one_object(self):
-        random_number = np.rand() %100
-        random_model = np.expand_dims(np.load(self.test_dir[random_number]), axis=0) 
+        random_number = np.random.randint(100) + 100
+        print(self.full_file_paths[random_number])
+
+        random_model = np.expand_dims(np.load(self.full_file_paths[random_number]), axis=0) 
         random_model = np.expand_dims(random_model, axis=-1)
         plot_voxels(np.squeeze(random_model), title="Original Random Model")
 

@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.keras import layers, Model
 from tensorflow.keras.regularizers import l2
 
-from build_utils import Sampling, scaled_sigmoid_activation, weighted_bce_loss
+from VAE_Model.build_vae.build_utils import Sampling, scaled_sigmoid_activation, weighted_bce_loss
 from .. import Hyperparameters as hp
 
 class VAE(Model):
@@ -13,7 +13,7 @@ class VAE(Model):
         self.latent_dim = latent_dim
         self.reshape_dim = reshape_dim
         self.beta = beta
-        self.l2_weights = l2_weight
+        self.l2_weight = l2_weight
 
         # Building the encoder + decoder
         self.encoder = self.build_encoder()
@@ -32,8 +32,8 @@ class VAE(Model):
     
     
 
-    def build_encoder(self,input_dim, latent_dim):
-        encoder_inputs = layers.Input(shape = input_dim)
+    def build_encoder(self):
+        encoder_inputs = layers.Input(shape = self.input_dim)
         # Downsampling by using strides = 2
         x = layers.Conv3D(32, 3, activation = 'elu', strides = 2, padding = 'same', kernel_regularizer = l2(self.l2_weight))(encoder_inputs)
         x = layers.BatchNormalization()(x)
@@ -57,27 +57,27 @@ class VAE(Model):
         x = layers.Dense(256, activation = 'elu')(x)
 
         # Obtaining the mean and log variance
-        z_mean = layers.Dense(latent_dim, name = 'z_mean', kernel_regularizer = l2(self.l2_weight))(x)
-        z_log_var = layers.Dense(latent_dim, name = 'z_log_var', kernel_regularizer = l2(self.l2_weight))(x)
+        z_mean = layers.Dense(self.latent_dim, name = 'z_mean', kernel_regularizer = l2(self.l2_weight))(x)
+        z_log_var = layers.Dense(self.latent_dim, name = 'z_log_var', kernel_regularizer = l2(self.l2_weight))(x)
 
         z = Sampling()([z_mean,z_log_var])
 
         encoder = tf.keras.Model(encoder_inputs, [z_mean,z_log_var,z], name = 'encoder')
         return encoder
-    def build_decoder(self,latent_dim, reshape_dim, l2_weight):
-        latent_inputs = tf.keras.Input(shape=(latent_dim,))
+    def build_decoder(self):
+        latent_inputs = tf.keras.Input(shape=(self.latent_dim,))
         #Upsample from the latent vector to the small grid necessary for the decoder
-        x = layers.Dense(reshape_dim[0] * reshape_dim[1] * reshape_dim[2] * 128, activation="relu")(latent_inputs)
-        x = layers.Reshape(reshape_dim)(x)
+        x = layers.Dense(self.reshape_dim[0] * self.reshape_dim[1] * self.reshape_dim[2] * 128, activation="relu")(latent_inputs)
+        x = layers.Reshape(self.reshape_dim)(x)
 
         
         # The transposed residual block
         residual = x
         x = layers.Conv3DTranspose(128, 3, activation='elu', padding='same',
-                                kernel_regularizer=l2(l2_weight))(x)
+                                kernel_regularizer=l2(self.l2_weight))(x)
         x = layers.BatchNormalization()(x)
         x = layers.Conv3DTranspose(128, 3, activation='elu', strides=2, padding='same',
-                                kernel_regularizer=l2(l2_weight))(x)
+                                kernel_regularizer=l2(self.l2_weight))(x)
         x = layers.BatchNormalization()(x)
 
         # Shortcut connection

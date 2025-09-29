@@ -2,25 +2,43 @@
 import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 import matplotlib.pyplot as plt
+import os
+from sklearn.model_selection import train_test_split
 
 # Files from this project imports
 from VAE_Model.Preprocess.VoxelizedDataset import VoxelizedDataset
-from train_utils import WarmupCosineDecay, PrintLR
-from VAE_Model.build_model.build_model import VAE
+from VAE_Model.train.train_utils import WarmupCosineDecay, PrintLR
+from VAE_Model.build_vae.build_model import VAE
 import VAE_Model.Hyperparameters as hp
 
 class Train_VAE():
-    def __init__(self,num_epochs, num_warmup_epochs, batch_size, train_dir, val_dir, weights_file):
+    def __init__(self,num_epochs, num_warmup_epochs, batch_size, train_dir, weights_file):
         self.num_epochs = num_epochs
         self.num_warmup_epochs = num_warmup_epochs
         self.batch_size = batch_size
         self.train_dir = train_dir
-        self.val_dir = val_dir
-        self.train_generator = VoxelizedDataset(self.train_dir, batch_size=self.batch_size, augment = True)
-        self.val_generator = VoxelizedDataset(self.val_dir, batch_size=self.batch_size, augment = False)
+        self.train_generator = None
+        self.val_generator = None
         self.weights_file = weights_file
         self.history = None
         self.vae_model = None
+
+    def configure_loaders(self):
+        all_processed_files = os.listdir(self.train_dir)
+
+        categories = [f.split('_')[0] for f in all_processed_files]
+
+        train_processed, val_processed = train_test_split(
+            all_processed_files,
+            test_size=0.2,
+            random_state=42,
+            stratify = categories
+        )
+        train_full_paths = [os.path.join(self.train_dir, f) for f in train_processed]
+        val_full_paths = [os.path.join(self.train_dir, f) for f in val_processed]
+        
+        self.train_generator = VoxelizedDataset(train_full_paths, batch_size=hp.BATCH_SIZE, augment=True)
+        self.val_generator = VoxelizedDataset(val_full_paths, batch_size=hp.BATCH_SIZE, augment=False)
 
     def define_steps(self):
         steps_per_epoch = len(self.train_generator)
@@ -46,14 +64,14 @@ class Train_VAE():
         and for you to be able to visualize what is happening
         """
 
-        
+
         model_checkpoint_callback = ModelCheckpoint(
             filepath= self.weights_file,  
             save_weights_only=True,              
             monitor='val_total_loss',                 
             mode='min',                           
             save_best_only=True,                 
-            verbose=12                           
+            verbose=1                           
         )
         early_stopping_callback = EarlyStopping(
             monitor='val_total_loss', 
@@ -72,6 +90,7 @@ class Train_VAE():
         self.vae_model.build(input_shape = hp.BUILD_INPUT_SHAPE)
 
     def train(self):
+        self.configure_loaders()
         self.configure_vae()
         optimizer = self.configure_optimizer()
         model_checkpoint_callback,\
