@@ -2,8 +2,9 @@ import tensorflow as tf
 import os
 
 import VAE_Model.Hyperparameters as hp
-from VAE_Model.evaluate.eval import Eval_VAE
 from VAE_Model.train.train import Train_VAE
+
+
 
 def test_train():
     # The datasets will be in Github Releases
@@ -12,17 +13,5 @@ def test_train():
     train_vae = Train_VAE(hp.NUM_EPOCHS, hp.WARMUP_EPOCHS, hp.BATCH_SIZE, train_dir= train_dir, weights_file=weights)
     train_vae.train()
 
-def test_eval():
-    weights = r'VAE_Model\Weights\best_vae_model.weights.h5'
-
-    eval = Eval_VAE(r'Dataset_Storage\voxelized-modelnet10-testset', weights_file = weights)
-    eval.initialize_model()
-    #eval.evaluate_model()
-    eval.reconstruct_one_object()
-
 if __name__ == "__main__":
-    TRAINING = False
-    if TRAINING:
-        test_train()
-    
-    test_eval()
+    test_train()
