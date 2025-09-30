@@ -4,9 +4,9 @@ import tensorflow as tf
 import numpy as np
 
 # Project files imports
-from VAE_Model.evaluate.eval_utils import plot_voxels
+from Backend.plot_grids_utils import plot_voxels
 from VAE_Model.evaluate.eval import Eval_VAE
-
+from Backend.plot_grids import trained_model
 model_instance = None
 
 def echo(text):
@@ -15,8 +15,7 @@ def echo(text):
 def initialize_model():
     global model_instance
     if model_instance is None:
-        model_instance = Eval_VAE(r'Dataset_Storage\voxelized-modelnet10-testset', 
-                                  weights_file = r'VAE_Model\Weights\best_vae_model.weights.h5')
+        model_instance = trained_model(weights_file = r'VAE_Model\Weights\best_vae_model.weights.h5')
         model_instance.initialize_model()
     return model_instance
 def reconstruct_object(uploaded_file):
@@ -49,4 +48,5 @@ with gr.Blocks() as demo:
     # Connect the "change" event of the file uploader to our main function
     file_input.upload(fn=reconstruct_object, inputs=file_input, outputs=outputs)
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()

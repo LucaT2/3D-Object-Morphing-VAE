@@ -1,4 +1,4 @@
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import numpy as np
 
 def plot_voxels(voxel_grid, title="", threshold = 0.5):

@@ -6,7 +6,7 @@ import os
 # This project's file imports
 from VAE_Model.build_vae.build_model import VAE
 from VAE_Model.Preprocess.VoxelizedDataset import VoxelizedDataset
-from VAE_Model.evaluate.eval_utils import calculate_reconstruction_similarity, plot_voxels
+from VAE_Model.evaluate.eval_utils import calculate_reconstruction_similarity
 import VAE_Model.Hyperparameters as hp
 
 class Eval_VAE():
