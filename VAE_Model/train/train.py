@@ -55,7 +55,7 @@ class Train_VAE():
             decay_steps=decay_steps,
             alpha=0.01
         )
-        optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
+        optimizer = tf.keras.optimizers.SGD(learning_rate = lr_schedule, momentum = 0.9, nesterov = True, clipnorm = 1.0)
         return optimizer
 
     def configure_training_environment(self):

@@ -38,7 +38,7 @@ class Eval_VAE():
         avg_iou = calculate_reconstruction_similarity(original_voxels, reconstructed_voxels)
         print(f"Average IOU is: {avg_iou}%")
     
-    def reconstruct_one_object(self):
+    def reconstruct_one_random_object(self):
         random_number = np.random.randint(100) + 100
         print(self.full_file_paths[random_number])
 
@@ -53,3 +53,8 @@ class Eval_VAE():
 
         reconstructed_voxel_grid = self.vae_test_model.decoder.predict(z_random)
         plot_voxels(np.squeeze(reconstructed_voxel_grid), title="Reconstruction from random latent sample")
+    
+    def reconstruct_given_object(self, object):
+        z_random = self.vae_test_model.encoder.predict(object)[2]
+        reconstructed_voxel_grid = self.vae_test_model.decoder.predict(z_random)
+        return reconstructed_voxel_grid

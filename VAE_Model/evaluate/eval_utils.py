@@ -21,7 +21,7 @@ def calculate_reconstruction_similarity(originals, reconstructions, threshold=0.
     
     return tf.reduce_mean(iou) * 100
 
-def plot_voxels(voxel_grid, title="", threshold = 0.6):
+def plot_voxels(voxel_grid, title="", threshold = 0.5):
     """
     Plots a 3D voxel grid from a NumPy array.
     """
@@ -39,5 +39,6 @@ def plot_voxels(voxel_grid, title="", threshold = 0.6):
     ax.voxels(binary_grid, edgecolor='k')
     
     ax.set_title(title)
-    plt.show()
+    #plt.show()
+    return fig
 
