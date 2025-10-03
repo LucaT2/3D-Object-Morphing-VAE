@@ -8,8 +8,8 @@ from VAE_Model.train.train import Train_VAE
 
 def test_train():
     # The datasets will be in Github Releases
-    train_dir = r'Dataset_Storage\voxelized-modelnet10-trainset'
-    weights = r'VAE_Model\Weights\best_vae_model.weights.h5'
+    train_dir = r'Dataset_Storage/voxelized-modelnet10-trainset'
+    weights = r'VAE_Model/Weights/best_vae_model.weights.h5'
     train_vae = Train_VAE(hp.NUM_EPOCHS, hp.WARMUP_EPOCHS, hp.BATCH_SIZE, train_dir= train_dir, weights_file=weights)
     train_vae.train()
 
