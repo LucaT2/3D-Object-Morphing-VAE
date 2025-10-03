@@ -3,11 +3,14 @@ import gradio as gr
 import tensorflow as tf
 import numpy as np
 import imageio
+from PIL import Image
+
+
 
 # Project files imports
 from Backend.plot_grids_utils import plot_voxels_numpy, plot_voxels_pyvista, create_morphing_gif
 from VAE_Model.evaluate.eval import Eval_VAE
-from Backend.plot_grids import trained_model
+from Backend.app_model import trained_model
 model_instance = None
 
 def echo(text):
@@ -43,7 +46,7 @@ def warm_up_model(model):
     print("✅ Model is warmed up and ready!")
 
 
-def reconstruct_object(uploaded_file):
+def reconstruct_object(uploaded_file, threshold):
     if uploaded_file is None:
         return None, None
     model = initialize_model()
@@ -54,11 +57,11 @@ def reconstruct_object(uploaded_file):
     original_plot = plot_voxels_pyvista(original_voxel_data, title="Original")
 
     reconstructed_voxels = model.reconstruct_given_object(original_voxel_data)
-    reconstructed_plot = plot_voxels_pyvista(reconstructed_voxels, title="Reconstructed")
+    reconstructed_plot = plot_voxels_pyvista(reconstructed_voxels, title="Reconstructed", threshold=threshold)
 
     return original_plot, reconstructed_plot
 
-def show_morphing_gif(file_1, file_2, steps):
+def show_morphing_gif(file_1, file_2, steps, threshold):
     if file_1 is None or file_2 is None:
         return None # Return nothing if files are missing
     model = initialize_model()
@@ -69,13 +72,29 @@ def show_morphing_gif(file_1, file_2, steps):
     # Create the GIF from the voxel grids
     frames = []
     for i, grid in enumerate(voxel_grids):
-        title = f"Step {i}/{len(voxel_grids)-1}"
-        frame_image = plot_voxels_pyvista(grid, title=title, threshold=0.6)
-        frames.append(frame_image)
-        
+        if i == 0:
+            title = "Original Object A"
+        elif i == len(voxel_grids) - 1:
+            title = "Original Object B"
+        else:
+            title = f"Step {i}/{len(voxel_grids)-1}"
+        frame_image = plot_voxels_pyvista(grid, title=title, threshold=threshold)
+        # Convert numpy array to PIL Image
+        pil_image = Image.fromarray(frame_image)
+        frames.append(pil_image)
+    
+    frames = [frames[0]] * 5 + frames[1:-1] + [frames[-1]] * 5
+
     # Create a temporary file path for the GIF
-    gif_path = "interpolation.gif"
-    imageio.mimsave(gif_path, frames, duration=5, loop=0) # loop=0 means infinite loop
+    gif_path = "/Frontend/interpolation.gif"
+    # Save GIF using Pillow, duration in milliseconds per frame
+    frames[0].save(
+        gif_path,
+        save_all=True,
+        append_images=frames[1:],
+        duration=500,  # 500 ms per frame (adjust as needed)
+        loop=0
+    )
     
     return gif_path
 
@@ -90,8 +109,11 @@ with gr.Blocks() as demo:
             with gr.Row():
                 original_plot_output = gr.Image(type="numpy", label="Original Object", interactive=False)
                 reconstructed_plot_output = gr.Image(type="numpy", label="VAE Reconstruction", interactive=False)
+            with gr.Row():
+                threshold_slider = gr.Slider(minimum=0.0, maximum=1.0, value=0.6, step=0.01, label="Threshold for the Voxel Grid")
             
-            file_input.upload(fn=reconstruct_object, inputs=file_input, outputs=[original_plot_output, reconstructed_plot_output])
+            reconstruct_button = gr.Button("Generate Reconstruction", variant="primary")
+            reconstruct_button.click(fn=reconstruct_object, inputs=[file_input, threshold_slider], outputs=[original_plot_output, reconstructed_plot_output])
 
         # Tab 2: Interpolation
         with gr.TabItem("✨ Latent Space Interpolation"):
@@ -99,8 +121,9 @@ with gr.Blocks() as demo:
             with gr.Row():
                 file_input_1 = gr.File(label="Upload Object A (.npy)")
                 file_input_2 = gr.File(label="Upload Object B (.npy)")
-            
-            steps_slider = gr.Slider(minimum=5, maximum=25, value=15, step=1, label="Number of Morphing Steps")
+            with gr.Row():
+                threshold_slider = gr.Slider(minimum=0.0, maximum=1.0, value=0.6, step=0.01, label="Threshold for the Voxel Grid")
+                steps_slider = gr.Slider(minimum=5, maximum=25, value=15, step=1, label="Number of Morphing Steps")
             
             generate_button = gr.Button("Generate Interpolation GIF", variant="primary")
             
@@ -108,7 +131,7 @@ with gr.Blocks() as demo:
             
             generate_button.click(
                 fn=show_morphing_gif,
-                inputs=[file_input_1, file_input_2, steps_slider],
+                inputs=[file_input_1, file_input_2, steps_slider, threshold_slider],
                 outputs=gif_output
             )
 
