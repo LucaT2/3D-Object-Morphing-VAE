@@ -65,23 +65,14 @@ def create_reconstruct_callback(previews_list):
     return reconstruct_callback
 
 def create_interpolation_callback(previews_list):
-    """Factory function to create a unique and correctly scoped callback for each category's interpolation."""
-    def interpolation_callback(selected_items: list, steps: int, threshold: float):
-        if not selected_items or len(selected_items) != 2:
-            raise gr.Error("Please select exactly two objects from the gallery.")
+    """Factory function that now works with indices from gr.State."""
+    def interpolation_callback(index_a, index_b, steps, threshold):
+        if index_a is None or index_b is None:
+            raise gr.Error("Please select one object from each gallery (A and B).")
         
-        temp_path_a = selected_items[0][0]
-        temp_path_b = selected_items[1][0]
-        
-        filename_a = os.path.basename(temp_path_a)
-        filename_b = os.path.basename(temp_path_b)
-
-        # Match filenames against the specific previews_list for this category
-        found_item_a = next((p for p in previews_list if os.path.basename(p["image_cache_path"]) == filename_a), None)
-        found_item_b = next((p for p in previews_list if os.path.basename(p["image_cache_path"]) == filename_b), None)
-
-        if not found_item_a or not found_item_b:
-            raise gr.Error("Could not match the selected images. Please try again.")
+        # We now have the correct indices directly
+        found_item_a = previews_list[index_a]
+        found_item_b = previews_list[index_b]
 
         path_a = found_item_a["path"]
         path_b = found_item_b["path"]
@@ -91,6 +82,7 @@ def create_interpolation_callback(previews_list):
         
         return show_morphing_gif(file_obj_a, file_obj_b, steps, threshold)
     return interpolation_callback
+
 
 
 with gr.Blocks() as demo:
@@ -108,7 +100,7 @@ with gr.Blocks() as demo:
                             label="Preview",
                             show_label=False,
                             columns=5,
-                            height=500
+                            height=360
                         )
                         with gr.Row():
                             #reconstruct_button = gr.Button("Generate Reconstruction", variant="primary")
@@ -125,23 +117,58 @@ with gr.Blocks() as demo:
                             outputs=[original_plot_output, reconstructed_plot_output]
                         )
 
-        # Tab 2: Interpolation
-        # with gr.TabItem("✨ Latent Space Interpolation"):
-        #     gr.Markdown("Upload two `.npy` objects to see the VAE morph one into the other. This visualizes a smooth path through the model's 'understanding' of 3D shapes.")
-        #     object_dropdown_1 = gr.Dropdown(choices=object_choices, label="Choose Object A")
-        #     object_dropdown_2 = gr.Dropdown(choices=object_choices, label="Choose Object B")
-        #     threshold_slider = gr.Slider(minimum=0.0, maximum=1.0, value=0.6, step=0.01, label="Threshold for the Voxel Grid")
-        #     steps_slider = gr.Slider(minimum=5, maximum=25, value=15, step=1, label="Number of Morphing Steps")
-            
-        #     generate_button = gr.Button("Generate Interpolation GIF", variant="primary")
-            
-        #     gif_output = gr.Image(label="Interpolation Animation", interactive=False)
-            
-        #     generate_button.click(
-        #         fn=show_morphing_gif,
-        #         inputs=[object_dropdown_1, object_dropdown_2, steps_slider, threshold_slider],
-        #         outputs=gif_output
-        #     )
+        with gr.TabItem("✨ Latent Space Interpolation"):
+
+            with gr.Tabs() as category_tabs_interp:
+                for category, previews in category_prews.items():
+                    with gr.TabItem(category):
+                        gr.Markdown(f"### Select Two {category.capitalize()} Objects to Morph")
+                        
+                        selected_index_A = gr.State(value=None)
+                        selected_index_B = gr.State(value=None)
+                        
+                        with gr.Row():
+                            interpolation_gallery_A = gr.Gallery(
+                                value=[p["image"] for p in previews],
+                                label="Select object A",
+                                columns=4,
+                                height=360,
+                                allow_preview=False
+                            )
+                            interpolation_gallery_B = gr.Gallery(
+                                value=[p["image"] for p in previews],
+                                label="Select object B",
+                                columns=4,
+                                height=360,
+                                allow_preview=False
+                            )
+                        def store_selection_A(evt: gr.SelectData):
+                            return evt.index
+                        def store_selection_B(evt: gr.SelectData):
+                            return evt.index
+                        
+                        interpolation_gallery_A.select(fn=store_selection_A, inputs=None, outputs=selected_index_A)
+                        interpolation_gallery_B.select(fn=store_selection_B, inputs=None, outputs=selected_index_B)
+
+                        with gr.Row():
+                            threshold_slider_interp = gr.Slider(minimum=0.0, maximum=1.0, value=0.6, step=0.01, label="Voxel Threshold")
+                            steps_slider = gr.Slider(minimum=5, maximum=30, value=15, step=1, label="Number of Morphing Steps")
+                        
+                        generate_button = gr.Button("Generate Interpolation GIF", variant="primary")
+                        gif_output = gr.Image(label="Interpolation Animation", interactive=False)
+                        
+                        callback_for_this_interp_tab = create_interpolation_callback(previews)
+                        
+                        generate_button.click(
+                            fn=callback_for_this_interp_tab,
+                            inputs=[
+                                selected_index_A, # Pass the stored index
+                                selected_index_B, # Pass the stored index
+                                steps_slider,
+                                threshold_slider_interp
+                            ],
+                            outputs=gif_output
+                        )
 
 if __name__ == "__main__":
     model = initialize_model()
