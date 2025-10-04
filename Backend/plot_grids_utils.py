@@ -95,7 +95,7 @@ def show_morphing_gif(model, file_1, file_2, steps, threshold):
         save_all=True,
         append_images=frames[1:],
         duration=500,  # 500 ms per frame
-        loop=0
+        loop=10
     )
 
     return gif_path

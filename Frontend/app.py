@@ -4,7 +4,7 @@ import numpy as np
 import imageio
 import os
 import json
-
+import gc
 from PIL import Image
 
 
@@ -55,7 +55,6 @@ load_previews()
 def create_reconstruct_callback(previews_list):
     """function to create a unique and correct callback for each category tab."""
     def reconstruct_callback(threshold: float, evt: gr.SelectData):
-        # evt.index gives us the exact index of the clicked item
         selected_index = evt.index
         
         # Get the corresponding object from our list
@@ -79,7 +78,7 @@ def interpolation_callback(item_a, item_b, steps, threshold):
 
     file_obj_a = type('File', (), {'name': path_a})()
     file_obj_b = type('File', (), {'name': path_b})()
-    
+    gc.collect()
     return show_morphing_gif(model, file_obj_a, file_obj_b, steps, threshold)
 
 
