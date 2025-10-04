@@ -35,7 +35,6 @@ def load_previews():
     for category, items in cached_metadata.items():
         previews = []
         for item in items:
-            # Load the pre-generated PNG image from disk
             image_data = imageio.imread(item["image_cache_path"])
             preview_item = {
                 "name": item["name"],
@@ -54,7 +53,7 @@ def load_previews():
 load_previews()
 
 def create_reconstruct_callback(previews_list):
-    """Factory function to create a unique and correctly scoped callback for each category tab."""
+    """function to create a unique and correct callback for each category tab."""
     def reconstruct_callback(threshold: float, evt: gr.SelectData):
         # evt.index gives us the exact index of the clicked item
         selected_index = evt.index
@@ -65,7 +64,7 @@ def create_reconstruct_callback(previews_list):
         # Get the .npy path for reconstruction
         file_path = found_item["path"]
         file_obj = type('File', (), {'name': file_path})()
-        return reconstruct_object(file_obj, threshold)
+        return reconstruct_object(model, file_obj, threshold)
         
     return reconstruct_callback
 
@@ -81,7 +80,7 @@ def interpolation_callback(item_a, item_b, steps, threshold):
     file_obj_a = type('File', (), {'name': path_a})()
     file_obj_b = type('File', (), {'name': path_b})()
     
-    return show_morphing_gif(file_obj_a, file_obj_b, steps, threshold)
+    return show_morphing_gif(model, file_obj_a, file_obj_b, steps, threshold)
 
 
 
@@ -89,34 +88,7 @@ with gr.Blocks() as demo:
     
     gr.Markdown("# 🤖 3D Variational Autoencoder (VAE) Playground")
     with gr.Tabs():
-        # Tab 1: Reconstruction
-        with gr.TabItem("🔄 Object Reconstruction"):
-            with gr.Tabs() as category_tabs:
-                for category, previews in category_prews.items():
-                    with gr.TabItem(category):
-                        gr.Markdown(f"### {category.capitalize()} Objects")
-                        gallery = gr.Gallery(
-                            value=[p["image"] for p in previews],
-                            label="Preview",
-                            show_label=False,
-                            columns=5,
-                            height=360
-                        )
-                        with gr.Row():
-                            #reconstruct_button = gr.Button("Generate Reconstruction", variant="primary")
-                            threshold_slider = gr.Slider(minimum=0.0, maximum=1.0, value=0.6, step=0.01, label="Threshold for the Voxel Grid")
-                        with gr.Row():
-                            original_plot_output = gr.Image(type="numpy", label="Original Object", interactive=False)
-                            reconstructed_plot_output = gr.Image(type="numpy", label="VAE Reconstruction", interactive=False)
-                        callback_for_this_tab = create_reconstruct_callback(previews)
-
-                    
-                        gallery.select(
-                            fn=callback_for_this_tab,
-                            inputs=[threshold_slider],
-                            outputs=[original_plot_output, reconstructed_plot_output]
-                        )
-
+        # Tab 1: Latent Space Interpolation
         with gr.TabItem("✨ Latent Space Interpolation"):
             gr.Markdown("### Select an Object A and an Object B to Morph")
             gr.Markdown("Use the dropdown above each gallery to filter its contents.")
@@ -129,17 +101,20 @@ with gr.Blocks() as demo:
             all_preview_images = [p['image'] for p in all_previews_list]
 
             with gr.Row():
-                # --- Column for Object A ---
                 with gr.Column():
                     category_filter_A = gr.Dropdown(choices=category_choices, value="All", label="Filter Gallery A by Category")
-                    interpolation_gallery_A = gr.Gallery(value=all_preview_images, label="Select Object A", columns=4, height=480, allow_preview=False)
+                    interpolation_gallery_A = gr.Gallery(value=all_preview_images, 
+                                                         label="Select Object A", 
+                                                         columns=4, height=360, 
+                                                         allow_preview=False)
                 
-                # --- Column for Object B ---
                 with gr.Column():
                     category_filter_B = gr.Dropdown(choices=category_choices, value="All", label="Filter Gallery B by Category")
-                    interpolation_gallery_B = gr.Gallery(value=all_preview_images, label="Select Object B", columns=4, height=480, allow_preview=False)
+                    interpolation_gallery_B = gr.Gallery(value=all_preview_images, 
+                                                         label="Select Object B", 
+                                                         columns=4, height=360, 
+                                                         allow_preview=False)
             
-            # --- Event Handling Logic ---
             def update_gallery(category):
                 """Updates a gallery's content based on the selected category."""
                 if category == "All":
@@ -170,7 +145,6 @@ with gr.Blocks() as demo:
             generate_button = gr.Button("Generate Interpolation GIF", variant="primary")
             gif_output = gr.Image(label="Interpolation Animation", interactive=False)
             
-            # The button click uses the stored objects from the state variables
             generate_button.click(
                 fn=interpolation_callback,
                 inputs=[
@@ -181,6 +155,35 @@ with gr.Blocks() as demo:
                 ],
                 outputs=gif_output
             )
+        # Tab 2: Reconstruction
+        with gr.TabItem("🔄 Object Reconstruction"):
+            with gr.Tabs() as category_tabs:
+                for category, previews in category_prews.items():
+                    with gr.TabItem(category):
+                        gr.Markdown(f"### {category.capitalize()} Objects")
+                        gallery = gr.Gallery(
+                            value=[p["image"] for p in previews],
+                            label="Preview",
+                            show_label=False,
+                            columns=5,
+                            height=360
+                        )
+                        with gr.Row():
+                            #reconstruct_button = gr.Button("Generate Reconstruction", variant="primary")
+                            threshold_slider = gr.Slider(minimum=0.0, maximum=1.0, value=0.6, step=0.01, label="Threshold for the Voxel Grid")
+                        with gr.Row():
+                            original_plot_output = gr.Image(type="numpy", label="Original Object", interactive=False)
+                            reconstructed_plot_output = gr.Image(type="numpy", label="VAE Reconstruction", interactive=False)
+                        callback_for_this_tab = create_reconstruct_callback(previews)
+
+                    
+                        gallery.select(
+                            fn=callback_for_this_tab,
+                            inputs=[threshold_slider],
+                            outputs=[original_plot_output, reconstructed_plot_output]
+                        )
+
+
 
 if __name__ == "__main__":
     model = initialize_model()

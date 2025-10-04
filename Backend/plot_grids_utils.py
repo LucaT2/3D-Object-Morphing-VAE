@@ -54,10 +54,9 @@ def plot_voxels_pyvista(voxel_grid, title= "", threshold=0.6):
     plotter.close()
     return screenshot
 
-def reconstruct_object(uploaded_file, threshold):
+def reconstruct_object(model, uploaded_file, threshold):
     if uploaded_file is None:
         return None, None
-    model = initialize_model()
 
     original_voxel_data = np.expand_dims(np.load(uploaded_file.name), axis = 0)
     original_voxel_data = np.expand_dims(original_voxel_data, axis = -1)
@@ -69,12 +68,10 @@ def reconstruct_object(uploaded_file, threshold):
 
     return original_plot, reconstructed_plot
 
-def show_morphing_gif(file_1, file_2, steps, threshold):
+def show_morphing_gif(model, file_1, file_2, steps, threshold):
     if file_1 is None or file_2 is None:
-        return None # Return nothing if files are missing
-    model = initialize_model()
+        return None 
 
-    # Get the list of voxel grids for each frame of the animation
     voxel_grids = model.get_interpolation(file_1.name, file_2.name, num_steps=int(steps))
 
     # Create the GIF from the voxel grids
@@ -87,20 +84,17 @@ def show_morphing_gif(file_1, file_2, steps, threshold):
         else:
             title = f"Step {i}/{len(voxel_grids)-1}"
         frame_image = plot_voxels_pyvista(grid, title=title, threshold=threshold)
-        # Convert numpy array to PIL Image
         pil_image = Image.fromarray(frame_image)
         frames.append(pil_image)
 
     frames = [frames[0]] * 5 + frames[1:-1] + [frames[-1]] * 5
 
-    # Create a temporary file path for the GIF
     gif_path = "Frontend/interpolation.gif"
-    # Save GIF using Pillow, duration in milliseconds per frame
     frames[0].save(
         gif_path,
         save_all=True,
         append_images=frames[1:],
-        duration=500,  # 500 ms per frame (adjust as needed)
+        duration=500,  # 500 ms per frame
         loop=0
     )
 
