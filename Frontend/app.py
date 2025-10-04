@@ -17,6 +17,8 @@ from Backend.prepare_model import initialize_model, warm_up_model, preload_objec
 from Backend.plot_grids_utils import reconstruct_object, show_morphing_gif
 
 category_prews = {}
+all_previews_list = []
+all_preview_images = []
 
 def load_previews():
     print("Loading previews from cache...")
@@ -35,12 +37,15 @@ def load_previews():
         for item in items:
             # Load the pre-generated PNG image from disk
             image_data = imageio.imread(item["image_cache_path"])
-            previews.append({
+            preview_item = {
                 "name": item["name"],
                 "path": item["path"],
                 "image": image_data ,
                 "image_cache_path": item["image_cache_path"]
-            })
+            }
+            previews.append(preview_item)
+            all_previews_list.append(preview_item)
+            
         category_prews[category] = previews
         print("Previews loaded successfully!")
 
@@ -64,24 +69,19 @@ def create_reconstruct_callback(previews_list):
         
     return reconstruct_callback
 
-def create_interpolation_callback(previews_list):
-    """Factory function that now works with indices from gr.State."""
-    def interpolation_callback(index_a, index_b, steps, threshold):
-        if index_a is None or index_b is None:
-            raise gr.Error("Please select one object from each gallery (A and B).")
-        
-        # We now have the correct indices directly
-        found_item_a = previews_list[index_a]
-        found_item_b = previews_list[index_b]
 
-        path_a = found_item_a["path"]
-        path_b = found_item_b["path"]
+def interpolation_callback(item_a, item_b, steps, threshold):
+    """Callback that receives the full item data from gr.State."""
+    if item_a is None or item_b is None:
+        raise gr.Error("Please select one object from each gallery (A and B).")
+    
+    path_a = item_a["path"]
+    path_b = item_b["path"]
 
-        file_obj_a = type('File', (), {'name': path_a})()
-        file_obj_b = type('File', (), {'name': path_b})()
-        
-        return show_morphing_gif(file_obj_a, file_obj_b, steps, threshold)
-    return interpolation_callback
+    file_obj_a = type('File', (), {'name': path_a})()
+    file_obj_b = type('File', (), {'name': path_b})()
+    
+    return show_morphing_gif(file_obj_a, file_obj_b, steps, threshold)
 
 
 
@@ -118,57 +118,69 @@ with gr.Blocks() as demo:
                         )
 
         with gr.TabItem("✨ Latent Space Interpolation"):
+            gr.Markdown("### Select an Object A and an Object B to Morph")
+            gr.Markdown("Use the dropdown above each gallery to filter its contents.")
 
-            with gr.Tabs() as category_tabs_interp:
-                for category, previews in category_prews.items():
-                    with gr.TabItem(category):
-                        gr.Markdown(f"### Select Two {category.capitalize()} Objects to Morph")
-                        
-                        selected_index_A = gr.State(value=None)
-                        selected_index_B = gr.State(value=None)
-                        
-                        with gr.Row():
-                            interpolation_gallery_A = gr.Gallery(
-                                value=[p["image"] for p in previews],
-                                label="Select object A",
-                                columns=4,
-                                height=360,
-                                allow_preview=False
-                            )
-                            interpolation_gallery_B = gr.Gallery(
-                                value=[p["image"] for p in previews],
-                                label="Select object B",
-                                columns=4,
-                                height=360,
-                                allow_preview=False
-                            )
-                        def store_selection_A(evt: gr.SelectData):
-                            return evt.index
-                        def store_selection_B(evt: gr.SelectData):
-                            return evt.index
-                        
-                        interpolation_gallery_A.select(fn=store_selection_A, inputs=None, outputs=selected_index_A)
-                        interpolation_gallery_B.select(fn=store_selection_B, inputs=None, outputs=selected_index_B)
+            # State variables to hold the full data of the selected objects
+            selected_item_A = gr.State(value=None)
+            selected_item_B = gr.State(value=None)
+            
+            category_choices = ["All"] + sorted(list(category_prews.keys()))
+            all_preview_images = [p['image'] for p in all_previews_list]
 
-                        with gr.Row():
-                            threshold_slider_interp = gr.Slider(minimum=0.0, maximum=1.0, value=0.6, step=0.01, label="Voxel Threshold")
-                            steps_slider = gr.Slider(minimum=5, maximum=30, value=15, step=1, label="Number of Morphing Steps")
-                        
-                        generate_button = gr.Button("Generate Interpolation GIF", variant="primary")
-                        gif_output = gr.Image(label="Interpolation Animation", interactive=False)
-                        
-                        callback_for_this_interp_tab = create_interpolation_callback(previews)
-                        
-                        generate_button.click(
-                            fn=callback_for_this_interp_tab,
-                            inputs=[
-                                selected_index_A, # Pass the stored index
-                                selected_index_B, # Pass the stored index
-                                steps_slider,
-                                threshold_slider_interp
-                            ],
-                            outputs=gif_output
-                        )
+            with gr.Row():
+                # --- Column for Object A ---
+                with gr.Column():
+                    category_filter_A = gr.Dropdown(choices=category_choices, value="All", label="Filter Gallery A by Category")
+                    interpolation_gallery_A = gr.Gallery(value=all_preview_images, label="Select Object A", columns=4, height=480, allow_preview=False)
+                
+                # --- Column for Object B ---
+                with gr.Column():
+                    category_filter_B = gr.Dropdown(choices=category_choices, value="All", label="Filter Gallery B by Category")
+                    interpolation_gallery_B = gr.Gallery(value=all_preview_images, label="Select Object B", columns=4, height=480, allow_preview=False)
+            
+            # --- Event Handling Logic ---
+            def update_gallery(category):
+                """Updates a gallery's content based on the selected category."""
+                if category == "All":
+                    return gr.Gallery.update(value=all_preview_images)
+                else:
+                    images_to_show = [p['image'] for p in category_prews[category]]
+                return gr.Gallery(value=images_to_show)
+
+            def store_selection(category, evt: gr.SelectData):
+                """Finds the full data for the selected item and returns it to be stored in State."""
+                if category == "All":
+                    return all_previews_list[evt.index]
+                else:
+                    return category_prews[category][evt.index]
+            
+            # When a filter dropdown changes, update its corresponding gallery
+            category_filter_A.change(fn=update_gallery, inputs=[category_filter_A], outputs=[interpolation_gallery_A])
+            category_filter_B.change(fn=update_gallery, inputs=[category_filter_B], outputs=[interpolation_gallery_B])
+            
+            # When an image is selected, store its full data in the appropriate state variable
+            interpolation_gallery_A.select(fn=store_selection, inputs=[category_filter_A], outputs=[selected_item_A])
+            interpolation_gallery_B.select(fn=store_selection, inputs=[category_filter_B], outputs=[selected_item_B])
+
+            with gr.Row():
+                threshold_slider_interp = gr.Slider(minimum=0.0, maximum=1.0, value=0.6, step=0.01, label="Voxel Threshold")
+                steps_slider = gr.Slider(minimum=5, maximum=30, value=15, step=1, label="Number of Morphing Steps")
+            
+            generate_button = gr.Button("Generate Interpolation GIF", variant="primary")
+            gif_output = gr.Image(label="Interpolation Animation", interactive=False)
+            
+            # The button click uses the stored objects from the state variables
+            generate_button.click(
+                fn=interpolation_callback,
+                inputs=[
+                    selected_item_A,
+                    selected_item_B,
+                    steps_slider,
+                    threshold_slider_interp
+                ],
+                outputs=gif_output
+            )
 
 if __name__ == "__main__":
     model = initialize_model()
