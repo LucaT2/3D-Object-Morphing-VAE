@@ -178,7 +178,7 @@ class GradioApp:
                                 label="Preview",
                                 show_label=False,
                                 columns=5,
-                                height=240
+                                height=360
                             )
                             with gr.Row():
                                 #reconstruct_button = gr.Button("Generate Reconstruction", variant="primary")
