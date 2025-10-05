@@ -1,5 +1,5 @@
-VAE_MODEL/Weights/
-Dataset_Storage/
-Frontend/previews_cache/
+# VAE_MODEL/Weights/
+# Dataset_Storage/
+# Frontend/previews_cache/
 Frontend/interpolation.gif
 assets.zip
