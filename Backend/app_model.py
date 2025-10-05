@@ -25,7 +25,7 @@ class trained_model():
     def get_interpolation(self, file_path_1, file_path_2, num_steps = 10):
         """
         Generates a sequence of morphed voxel grids between two objects.
-        Returns: list[np.ndarray]: A list of voxel grids, starting with model 1,
+        Returns: A list of voxel grids, starting with model 1,
                             ending with model 2, including all interpolated steps.
         """
         model_a = np.expand_dims(np.load(file_path_1), axis=(0, -1))

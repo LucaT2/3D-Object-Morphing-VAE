@@ -1,0 +1,9 @@
+Pillow
+imageio
+numpy
+pyvista[headless]
+scikit-image
+streamlit
+tensorflow
+matplotlib
+gradio

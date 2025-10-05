@@ -4,7 +4,7 @@ import pyvista as pv
 import imageio
 import os
 from PIL import Image
-
+from skimage import measure
 from Backend.prepare_model import initialize_model, warm_up_model
 
 
