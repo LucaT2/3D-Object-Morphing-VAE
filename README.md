@@ -1,6 +1,35 @@
-# 3D-Object-Morphing-VAE
-A 3D Variational Autoencoder trained on Modelnet10 that can morph and interpolate 3D objects from 10 categories. Developed using Python and TensorFlow for backend and Gradio for frontend.
+# 3D-Object-Morphing-VAE 🤖
 
-Here you can access the [link](https://lucat2-3d-vae-playground.hf.space/) to the web app that I built that allows you to interact with the model.
+A 3D Variational Autoencoder (VAE) trained on the **Modelnet10** dataset that can **morph and interpolate 3D objects** across 10 distinct categories. This project demonstrates the power of latent space manipulation for generating novel 3D geometry.
 
-Here is a [link](https://www.kaggle.com/code/tasadanluca/3d-object-morphing) to the kaggle notebook where I developed and trained the model
+## 🚀 Live Demo & Code
+
+| Resource | Link | Description |
+| :--- | :--- | :--- |
+| **Web App Playground** | [https://lucat2-3d-vae-playground.hf.space/](https://lucat2-3d-vae-playground.hf.space/) | Interact with the trained model using a **Gradio** frontend. |
+| **Kaggle Notebook** | [https://www.kaggle.com/code/tasadanluca/3d-object-morphing](https://www.kaggle.com/code/tasadanluca/3d-object-morphing) | View the complete development, training, and analysis code. |
+
+## ✨ Features
+
+* **3D Object Morphing:** Seamlessly transition between two different 3D objects by interpolating their latent space representations.
+* **Variational Autoencoder (VAE):** Utilizes a VAE architecture for learning a smooth, continuous latent space, essential for meaningful interpolation.
+* **Modelnet10 Dataset:** Trained on 10 common object categories (e.g., chair, table, sofa, monitor).
+
+## 🛠️ Technology Stack
+
+* **Deep Learning Backend:** **Python** and **TensorFlow**
+* **Frontend/Interface:** **Gradio** (used for the interactive web app)
+* **Data:** Modelnet10 (Point Cloud or Voxel representations)
+
+## ➡️ Getting Started
+
+To use, train, or evaluate the model locally, follow the instructions below.
+
+### 1. Setup
+
+Clone the repository and install the necessary dependencies (assuming a `requirements.txt` is present):
+
+```bash
+git clone <Your_Repo_Link_Here>
+cd 3D-Object-Morphing-VAE
+pip install -r requirements.txt
