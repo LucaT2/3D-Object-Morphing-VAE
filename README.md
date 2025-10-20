@@ -1,6 +1,6 @@
 # 3D-Object-Morphing-VAE 🤖
 
-A 3D Variational Autoencoder (VAE) trained on the **Modelnet10** dataset that can **morph and interpolate 3D objects** across 10 distinct categories. This project demonstrates the power of latent space manipulation for generating novel 3D geometry. This model used many training techniques that are in this paper: (Generative and Discriminative Voxel Modeling with Convolutional Neural Networks)[https://arxiv.org/abs/1608.04236], most important being the modified loss function that penalizes the model if it generates wrong empty voxels.
+A 3D Variational Autoencoder (VAE) trained on the **Modelnet10** dataset that can **morph and interpolate 3D objects** across 10 distinct categories. This project demonstrates the power of latent space manipulation for generating novel 3D geometry. This model used many training techniques that are in this paper: [Generative and Discriminative Voxel Modeling with Convolutional Neural Networks](https://arxiv.org/abs/1608.04236), most important being the modified loss function that penalizes the model if it generates wrong empty voxels.
 
 ## 🚀 Live Demo & Code
 
