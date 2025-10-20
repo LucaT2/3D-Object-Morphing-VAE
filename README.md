@@ -33,3 +33,10 @@ Clone the repository and install the necessary dependencies:
 git clone <Your_Repo_Link_Here>
 cd 3D-Object-Morphing-VAE
 pip install -r requirements.txt
+# 2. Training the Model
+# Start the training process for the 3D VAE
+python train_main.py
+
+# 3. Evaluating the Model
+# Run the evaluation script on the trained model
+python eval_main.py
