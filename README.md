@@ -19,7 +19,7 @@ A 3D Variational Autoencoder (VAE) trained on the **Modelnet10** dataset that ca
 
 * **Deep Learning Backend:** **Python** and **TensorFlow**
 * **Frontend/Interface:** **Gradio** (used for the interactive web app)
-* **Data:** Modelnet10 (Point Cloud or Voxel representations)
+* **Data:** Modelnet10 ( oxel representations)
 
 ## ➡️ Getting Started
 
@@ -27,7 +27,7 @@ To use, train, or evaluate the model locally, follow the instructions below.
 
 ### 1. Setup
 
-Clone the repository and install the necessary dependencies (assuming a `requirements.txt` is present):
+Clone the repository and install the necessary dependencies:
 
 ```bash
 git clone <Your_Repo_Link_Here>
