@@ -19,7 +19,7 @@ A 3D Variational Autoencoder (VAE) trained on the **Modelnet10** dataset that ca
 
 * **Deep Learning Backend:** **Python** and **TensorFlow**
 * **Frontend/Interface:** **Gradio** (used for the interactive web app)
-* **Data:** Modelnet10 ( oxel representations)
+* **Data:** Modelnet10 ( Voxelized representations)
 
 ## ➡️ Getting Started
 
