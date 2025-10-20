@@ -23,15 +23,17 @@ A 3D Variational Autoencoder (VAE) trained on the **Modelnet10** dataset that ca
 
 ## ➡️ Getting Started
 
-To use, train, or evaluate the model locally, follow the instructions below. I recommend using an evironment, such as conda or if you prefer you can also you a local one. Also in order for the tensorflow library to work with your gpu, you either must
+I recommend using an evironment, such as conda or if you prefer you can also you a local one. Also in order for the tensorflow library to work with your gpu, you either must
 run this project from linux, or if you are on Windows you should run it from a Linux subsystem such as WSL or Ubuntu. Otherwise your training or evaluating phase will not be able to run on gpu.
+
+To use, train, or evaluate the model locally, follow the instructions below. 
 
 ### 1. Setup
 
 Clone the repository and install the necessary dependencies:
 
 ```bash
-git clone <Your_Repo_Link_Here>
+git clone https://github.com/LucaT2/3D-Object-Morphing-VAE
 cd 3D-Object-Morphing-VAE
 pip install -r requirements.txt
 ```
@@ -43,4 +45,10 @@ python train_main.py
 ### 3. Evaluate the Model
 ```bash
 python eval_main.py
+```
+
+### 4.Run the app locally 
+(Though there should be no need for this as I already provided a link to the app above)
+```bash
+python app.py
 ```
