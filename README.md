@@ -23,7 +23,8 @@ A 3D Variational Autoencoder (VAE) trained on the **Modelnet10** dataset that ca
 
 ## ➡️ Getting Started
 
-To use, train, or evaluate the model locally, follow the instructions below.
+To use, train, or evaluate the model locally, follow the instructions below. I recommend using an evironment, such as conda or if you prefer you can also you a local one. Also in order for the tensorflow library to work with your gpu, you either must
+run this project from linux, or if you are on Windows you should run it from a Linux subsystem such as WSL or Ubuntu. Otherwise your training or evaluating phase will not be able to run on gpu.
 
 ### 1. Setup
 
@@ -34,13 +35,12 @@ git clone <Your_Repo_Link_Here>
 cd 3D-Object-Morphing-VAE
 pip install -r requirements.txt
 ```
-# 2. Training the Model
-# Start the training process for the 3D VAE
+
+### 2. Start the training process for the 3D VAE
 ```bash
 python train_main.py
 ```
-# 3. Evaluating the Model
-# Run the evaluation script on the trained model
+### 3. Evaluate the Model
 ```bash
 python eval_main.py
 ```
